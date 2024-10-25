@@ -12,16 +12,31 @@ import streamlit.components.v1 as components
 
 # Function to fetch poster path from TMDb API
 def fetch_poster(movie_id):
-     url = "https://api.themoviedb.org/3/movie/{}?api_key=017696e96e844770756eda22192b4552&language=en-US".format(movie_id)
-     data = requests.get(url)
-     data = data.json()
-     poster_path = data['poster_path']
-     full_path = "https://image.tmdb.org/t/p/w500/" + poster_path
-     return full_path
+    url = "https://api.themoviedb.org/3/movie/{}?api_key=017696e96e844770756eda22192b4552&language=en-US".format(movie_id)
+    data = requests.get(url)
+    data = data.json()
+    poster_path = data['poster_path']
+    full_path = "https://image.tmdb.org/t/p/w500/" + poster_path
+    return full_path
+
+# Function to download file from Google Drive
+def download_file_from_google_drive(file_id, destination):
+    URL = f'https://drive.google.com/uc?export=download&id={file_id}'
+    response = requests.get(URL)
+    if response.status_code == 200:
+        with open(destination, 'wb') as f:
+            f.write(response.content)
+    else:
+        st.error("Failed to download file.")
+
+# Download similarity.pkl from Google Drive
+file_id = '1I50mx1aLgcXn91t5bEAVtnf5t9bhsqzL'
+destination_path = 'similarity.pkl'
+download_file_from_google_drive(file_id, destination_path)
 
 # Load the pickled data
 movies = pickle.load(open("C:/Users/CHAHATI DAYAL/OneDrive/Desktop/Movie Recommendation System/movies_list.pkl", 'rb'))
-similarity = pickle.load(open("C:/Users/CHAHATI DAYAL/OneDrive/Desktop/Movie Recommendation System/similarity.pkl", 'rb'))
+similarity = pickle.load(open(destination_path, 'rb'))  # Load the downloaded file
 movies_list = movies['title'].values
 
 # Streamlit header
