@@ -9,6 +9,7 @@ import streamlit as st
 import pickle
 import requests
 import streamlit.components.v1 as components
+import gdown
 
 # Function to fetch poster path from TMDb API
 def fetch_poster(movie_id):
@@ -19,31 +20,27 @@ def fetch_poster(movie_id):
     full_path = "https://image.tmdb.org/t/p/w500/" + poster_path
     return full_path
 
-# Function to download file from Google Drive
-def download_file_from_google_drive(file_id, destination):
-    URL = f'https://drive.google.com/uc?export=download&id={file_id}'
-    response = requests.get(URL)
-    if response.status_code == 200:
-        with open(destination, 'wb') as f:
-            f.write(response.content)
-    else:
-        st.error("Failed to download file.")
+# Function to download files from Google Drive
+def download_file_from_google_drive(file_id, destination_path):
+    gdown.download(f'https://drive.google.com/uc?id={file_id}', destination_path, quiet=False)
 
-# Download similarity.pkl from Google Drive
-file_id = '1I50mx1aLgcXn91t5bEAVtnf5t9bhsqzL'
-destination_path = 'similarity.pkl'
-download_file_from_google_drive(file_id, destination_path)
+movies_file_id = '1abcdEFGhijkLmnoPQ'  # Replace with the actual ID for movies_list.pkl
+similarity_file_id = '1I50mx1aLgcXn91t5bEAVtnf5t9bhsqzL'  # similarity.pkl ID from the provided link
+
+# Download the pickled data
+download_file_from_google_drive(movies_file_id, 'movies_list.pkl')
+download_file_from_google_drive(similarity_file_id, 'similarity.pkl')
 
 # Load the pickled data
-movies = pickle.load(open("C:/Users/CHAHATI DAYAL/OneDrive/Desktop/Movie Recommendation System/movies_list.pkl", 'rb'))
-similarity = pickle.load(open(destination_path, 'rb'))  # Load the downloaded file
+movies = pickle.load(open('movies_list.pkl', 'rb'))
+similarity = pickle.load(open('similarity.pkl', 'rb'))
 movies_list = movies['title'].values
 
 # Streamlit header
 st.header("Movie Recommender System")
 
 # Correct path for the frontend component directory
-imageCarouselComponent = components.declare_component("image-carousel-component", path="C:/Users/CHAHATI DAYAL/OneDrive/Desktop/Movie Recommendation System/frontend/public")
+imageCarouselComponent = components.declare_component("image-carousel-component", path="path/to/your/frontend/public")
 
 # Pre-fetch some posters
 imageUrls = [
@@ -99,3 +96,4 @@ if st.button("Show Recommend"):
     with col5:
         st.text(movie_name[4])
         st.image(movie_poster[4])
+
