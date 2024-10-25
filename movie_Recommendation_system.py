@@ -8,14 +8,13 @@ Created on Tue Jul  2 01:21:56 2024
 import streamlit as st
 import pickle
 import requests
-import streamlit.components.v1 as components
 import gdown
+import streamlit.components.v1 as components
 
 # Function to fetch poster path from TMDb API
 def fetch_poster(movie_id):
-    url = "https://api.themoviedb.org/3/movie/{}?api_key=017696e96e844770756eda22192b4552&language=en-US".format(movie_id)
-    data = requests.get(url)
-    data = data.json()
+    url = f"https://api.themoviedb.org/3/movie/{movie_id}?api_key=YOUR_API_KEY&language=en-US"
+    data = requests.get(url).json()
     poster_path = data['poster_path']
     full_path = "https://image.tmdb.org/t/p/w500/" + poster_path
     return full_path
@@ -24,11 +23,12 @@ def fetch_poster(movie_id):
 def download_file_from_google_drive(file_id, destination_path):
     gdown.download(f'https://drive.google.com/uc?id={file_id}', destination_path, quiet=False)
 
-movies_file_id = '1abcdEFGhijkLmnoPQ'  # Replace with the actual ID for movies_list.pkl
-similarity_file_id = '1I50mx1aLgcXn91t5bEAVtnf5t9bhsqzL'  # similarity.pkl ID from the provided link
+# Google Drive file IDs
+movies_file_id = '1abcdEFGhijkLmnoPQ'  # Replace with your actual movies_list.pkl ID
+similarity_file_id = '1I50mx1aLgcXn91t5bEAVtnf5t9bhsqzL'  # similarity.pkl ID
 
 # Download the pickled data
-download_file_from_google_drive(movies_file_id, 'movies_list.pkl')
+download_file_from_google_drive(movies_file_id, 'movies_list.pkl')  # Make sure to set the correct file ID
 download_file_from_google_drive(similarity_file_id, 'similarity.pkl')
 
 # Load the pickled data
@@ -40,7 +40,7 @@ movies_list = movies['title'].values
 st.header("Movie Recommender System")
 
 # Correct path for the frontend component directory
-imageCarouselComponent = components.declare_component("image-carousel-component", path="path/to/your/frontend/public")
+imageCarouselComponent = components.declare_component("image-carousel-component", path="frontend/public")
 
 # Pre-fetch some posters
 imageUrls = [
@@ -96,4 +96,3 @@ if st.button("Show Recommend"):
     with col5:
         st.text(movie_name[4])
         st.image(movie_poster[4])
-
