@@ -21,100 +21,100 @@ def fetch_poster(movie_id):
 def download_file_from_google_drive(file_id, destination_path):
     url = f"https://drive.google.com/uc?id={file_id}&export=download"
     response = requests.get(url)
-    
+
     if response.status_code == 200:
+        # Check if the content type is HTML, indicating an error page
+        if 'text/html' in response.headers.get('Content-Type', ''):
+            st.error("Downloaded file appears to be an HTML page. Please check the Google Drive link and file ID.")
+            return
+
         with open(destination_path, 'wb') as f:
             f.write(response.content)
-        st.write(f"Downloaded {destination_path} successfully!")
+        st.success(f"Downloaded {destination_path} successfully!")
     else:
         st.error("Failed to download the file. Please check the file ID and permissions.")
 
 # Google Drive file IDs
-movies_file_id = '1I50mx1aLgcXn91t5bEAVtnf5t9bhsqzL'  # movies_list.pkl file ID
+movies_file_id = '1I50mx1aLgcXn91t5bEAVtnf5t9bhsqzL'  # Update with your correct file ID
 
 # Download the movies_list.pkl file
 download_file_from_google_drive(movies_file_id, 'movies_list.pkl')
 
-# Load the pickled data
+# Load the pickled data with error handling
 try:
     with open('movies_list.pkl', 'rb') as f:
         movies = pickle.load(f)
         st.success("Loaded movies_list.pkl successfully!")
 except Exception as e:
     st.error(f"Error loading movies_list.pkl: {e}")
-    movies = None  # Set to None if loading fails
+    st.stop()  # Stop execution if loading fails
 
-# Check if movies were loaded successfully
-if movies is not None:
-    movies_list = movies['title'].values
+try:
+    with open('similarity.pkl', 'rb') as f:  # Ensure similarity.pkl is in your directory
+        similarity = pickle.load(f)
+except FileNotFoundError:
+    st.error("similarity.pkl file not found. Please ensure it is present in the directory.")
+    st.stop()  # Stop execution if loading fails
 
-    # Streamlit header
-    st.header("Movie Recommender System")
+movies_list = movies['title'].values
 
-    # Correct path for the frontend component directory
-    imageCarouselComponent = components.declare_component("image-carousel-component", path="frontend/public")
+# Streamlit header
+st.header("Movie Recommender System")
 
-    # Pre-fetch some posters
-    imageUrls = [
-        fetch_poster(1632),
-        fetch_poster(299536),
-        fetch_poster(17455),
-        fetch_poster(2830),
-        fetch_poster(429422),
-        fetch_poster(9722),
-        fetch_poster(13972),
-        fetch_poster(240),
-        fetch_poster(155),
-        fetch_poster(598),
-        fetch_poster(914),
-        fetch_poster(255709),
-        fetch_poster(572154)
-    ]
+# Correct path for the frontend component directory
+imageCarouselComponent = components.declare_component("image-carousel-component", path="frontend/public")
 
-    # Display the carousel component
-    imageCarouselComponent(imageUrls=imageUrls, height=200)
+# Pre-fetch some posters
+imageUrls = [
+    fetch_poster(1632),
+    fetch_poster(299536),
+    fetch_poster(17455),
+    fetch_poster(2830),
+    fetch_poster(429422),
+    fetch_poster(9722),
+    fetch_poster(13972),
+    fetch_poster(240),
+    fetch_poster(155),
+    fetch_poster(598),
+    fetch_poster(914),
+    fetch_poster(255709),
+    fetch_poster(572154)
+]
 
-    # Selectbox to choose a movie
-    selectvalue = st.selectbox("Select movie from dropdown", movies_list)
+# Display the carousel component
+imageCarouselComponent(imageUrls=imageUrls, height=200)
 
-    # Function to recommend movies (this will need the similarity.pkl)
-    def recommend(movie):
-        try:
-            similarity = pickle.load(open('similarity.pkl', 'rb'))  # Load local similarity.pkl
-            index = movies[movies['title'] == movie].index[0]
-            distance = sorted(list(enumerate(similarity[index])), reverse=True, key=lambda vector: vector[1])
-            recommend_movie = []
-            recommend_poster = []
-            for i in distance[1:6]:
-                movie_id = movies.iloc[i[0]].id
-                recommend_movie.append(movies.iloc[i[0]].title)
-                recommend_poster.append(fetch_poster(movie_id))
-            return recommend_movie, recommend_poster
-        except FileNotFoundError:
-            st.error("similarity.pkl file not found. Recommendations cannot be generated.")
-            return [], []
+# Selectbox to choose a movie
+selectvalue = st.selectbox("Select movie from dropdown", movies_list)
 
-    # Button to show recommendations
-    if st.button("Show Recommend"):
-        movie_name, movie_poster = recommend(selectvalue)
-        if movie_name:  # Check if recommendations were made
-            col1, col2, col3, col4, col5 = st.columns(5)
-            with col1:
-                st.text(movie_name[0])
-                st.image(movie_poster[0])
-            with col2:
-                st.text(movie_name[1])
-                st.image(movie_poster[1])
-            with col3:
-                st.text(movie_name[2])
-                st.image(movie_poster[2])
-            with col4:
-                st.text(movie_name[3])
-                st.image(movie_poster[3])
-            with col5:
-                st.text(movie_name[4])
-                st.image(movie_poster[4])
-        else:
-            st.warning("No recommendations available.")
-else:
-    st.warning("Movie data not loaded. Cannot proceed with the recommendations.")
+# Function to recommend movies
+def recommend(movie):
+    index = movies[movies['title'] == movie].index[0]
+    distance = sorted(list(enumerate(similarity[index])), reverse=True, key=lambda vector: vector[1])
+    recommend_movie = []
+    recommend_poster = []
+    for i in distance[1:6]:
+        movie_id = movies.iloc[i[0]].id
+        recommend_movie.append(movies.iloc[i[0]].title)
+        recommend_poster.append(fetch_poster(movie_id))
+    return recommend_movie, recommend_poster
+
+# Button to show recommendations
+if st.button("Show Recommend"):
+    movie_name, movie_poster = recommend(selectvalue)
+    col1, col2, col3, col4, col5 = st.columns(5)
+    with col1:
+        st.text(movie_name[0])
+        st.image(movie_poster[0])
+    with col2:
+        st.text(movie_name[1])
+        st.image(movie_poster[1])
+    with col3:
+        st.text(movie_name[2])
+        st.image(movie_poster[2])
+    with col4:
+        st.text(movie_name[3])
+        st.image(movie_poster[3])
+    with col5:
+        st.text(movie_name[4])
+        st.image(movie_poster[4])
