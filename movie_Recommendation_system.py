@@ -120,5 +120,3 @@ if movies is not None and similarity is not None:
             st.image(movie_poster[4])
 else:
     st.warning("Movie data not loaded. Cannot proceed with the recommendations.")
-
-        st.image(movie_poster[4])
