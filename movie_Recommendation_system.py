@@ -35,9 +35,20 @@ movies_file_id = '1I50mx1aLgcXn91t5bEAVtnf5t9bhsqzL'  # movies_list.pkl file ID
 # Download the movies_list.pkl file
 download_file_from_google_drive(movies_file_id, 'movies_list.pkl')
 
-# Load the pickled data
-movies = pickle.load(open('movies_list.pkl', 'rb'))
-similarity = pickle.load(open('similarity.pkl', 'rb'))  # Load local similarity.pkl
+# Load the pickled data with verification
+try:
+    with open('movies_list.pkl', 'rb') as f:
+        movies = pickle.load(f)
+        st.write("Loaded movies_list.pkl successfully!")  # Change this to Streamlit write to show in the app
+except Exception as e:
+    st.error(f"Error loading movies_list.pkl: {e}")  # Change this to Streamlit error to show in the app
+
+# Load the similarity.pkl file (assuming it's stored locally)
+try:
+    similarity = pickle.load(open('similarity.pkl', 'rb'))
+except Exception as e:
+    st.error(f"Error loading similarity.pkl: {e}")
+
 movies_list = movies['title'].values
 
 # Streamlit header
