@@ -10,30 +10,46 @@ import pickle
 import requests
 import gdown
 import streamlit.components.v1 as components
+import os
+
+# Set your TMDb API key in an environment variable
+TMDB_API_KEY = os.getenv("TMDB_API_KEY")  # Make sure this is set before running
 
 # Function to fetch poster path from TMDb API
 def fetch_poster(movie_id):
-    url = f"https://api.themoviedb.org/3/movie/{movie_id}?api_key=YOUR_API_KEY&language=en-US"
+    url = f"https://api.themoviedb.org/3/movie/{movie_id}?api_key={TMDB_API_KEY}&language=en-US"
     data = requests.get(url).json()
-    poster_path = data['poster_path']
-    full_path = "https://image.tmdb.org/t/p/w500/" + poster_path
+    poster_path = data.get('poster_path', '')
+    if poster_path:
+        full_path = "https://image.tmdb.org/t/p/w500/" + poster_path
+    else:
+        full_path = "https://via.placeholder.com/500?text=No+Image+Available"
     return full_path
 
 # Function to download files from Google Drive
 def download_file_from_google_drive(file_id, destination_path):
-    gdown.download(f'https://drive.google.com/uc?id={file_id}', destination_path, quiet=False)
+    gdown.download(f'https://drive.google.com/uc?id={file_id}&export=download', destination_path, quiet=False)
 
 # Google Drive file IDs
 movies_file_id = '1abcdEFGhijkLmnoPQ'  # Replace with your actual movies_list.pkl ID
-similarity_file_id = '1I50mx1aLgcXn91t5bEAVtnf5t9bhsqzL'  # similarity.pkl ID
+similarity_file_id = '1I50mx1aLgcXn91t5bEAVtnf5t9bhsqzL'  # Replace with your actual similarity.pkl ID
 
 # Download the pickled data
-download_file_from_google_drive(movies_file_id, 'movies_list.pkl')  # Make sure to set the correct file ID
+download_file_from_google_drive(movies_file_id, 'movies_list.pkl')
 download_file_from_google_drive(similarity_file_id, 'similarity.pkl')
 
-# Load the pickled data
-movies = pickle.load(open('movies_list.pkl', 'rb'))
-similarity = pickle.load(open('similarity.pkl', 'rb'))
+# Load the pickled data with error handling
+try:
+    movies = pickle.load(open('movies_list.pkl', 'rb'))
+    similarity = pickle.load(open('similarity.pkl', 'rb'))
+except FileNotFoundError as e:
+    st.error(f"File not found: {e}")
+    st.stop()
+except Exception as e:
+    st.error(f"An error occurred: {e}")
+    st.stop()
+
+# Extract movie titles for dropdown
 movies_list = movies['title'].values
 
 # Streamlit header
