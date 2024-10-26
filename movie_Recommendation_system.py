@@ -8,30 +8,21 @@ Created on Tue Jul  2 01:21:56 2024
 import streamlit as st
 import pickle
 import requests
-import gdown
 import streamlit.components.v1 as components
-import os
-
-# Set your TMDb API key in an environment variable
-TMDB_API_KEY = os.getenv("TMDB_API_KEY")  # Make sure this is set before running
 
 # Function to fetch poster path from TMDb API
 def fetch_poster(movie_id):
-    url = f"https://api.themoviedb.org/3/movie/{movie_id}?api_key={TMDB_API_KEY}&language=en-US"
+    url = f"https://api.themoviedb.org/3/movie/{movie_id}?api_key=017696e96e844770756eda22192b4552&language=en-US"
     data = requests.get(url).json()
-    poster_path = data.get('poster_path', '')
-    if poster_path:
-        full_path = "https://image.tmdb.org/t/p/w500/" + poster_path
-    else:
-        full_path = "https://via.placeholder.com/500?text=No+Image+Available"
+    poster_path = data['poster_path']
+    full_path = "https://image.tmdb.org/t/p/w500/" + poster_path
     return full_path
 
-# Function to download files from Google Drive
-import requests
-
-def download_file_from_google_drive_alternate(file_id, destination_path):
-    url = f"https://drive.google.com/uc?export=download&id={file_id}"
+# Function to download files from Google Drive using direct link
+def download_file_from_google_drive(file_id, destination_path):
+    url = f"https://drive.google.com/uc?id={file_id}&export=download"
     response = requests.get(url)
+    
     if response.status_code == 200:
         with open(destination_path, 'wb') as f:
             f.write(response.content)
@@ -39,30 +30,17 @@ def download_file_from_google_drive_alternate(file_id, destination_path):
     else:
         st.error("Failed to download the file. Please check the file ID and permissions.")
 
-# Example usage
-download_file_from_google_drive_alternate('1I50mx1aLgcXn91t5bEAVtnf5t9bhsqzL', 'similarity.pkl')
-
-
 # Google Drive file IDs
-movies_file_id = '1abcdEFGhijkLmnoPQ'  # Replace with your actual movies_list.pkl ID
-similarity_file_id = '1I50mx1aLgcXn91t5bEAVtnf5t9bhsqzL'  # Replace with your actual similarity.pkl ID
+movies_file_id = '1I50mx1aLgcXn91t5bEAVtnf5t9bhsqzL'  # movies_list.pkl file ID
+similarity_file_id = '1abcdEFGhijkLmnoPQ'  # similarity.pkl file ID (replace with actual)
 
 # Download the pickled data
 download_file_from_google_drive(movies_file_id, 'movies_list.pkl')
 download_file_from_google_drive(similarity_file_id, 'similarity.pkl')
 
-# Load the pickled data with error handling
-try:
-    movies = pickle.load(open('movies_list.pkl', 'rb'))
-    similarity = pickle.load(open('similarity.pkl', 'rb'))
-except FileNotFoundError as e:
-    st.error(f"File not found: {e}")
-    st.stop()
-except Exception as e:
-    st.error(f"An error occurred: {e}")
-    st.stop()
-
-# Extract movie titles for dropdown
+# Load the pickled data
+movies = pickle.load(open('movies_list.pkl', 'rb'))
+similarity = pickle.load(open('similarity.pkl', 'rb'))
 movies_list = movies['title'].values
 
 # Streamlit header
