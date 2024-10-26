@@ -13,11 +13,13 @@ import streamlit.components.v1 as components
 def fetch_poster(movie_id):
     url = f"https://api.themoviedb.org/3/movie/{movie_id}?api_key=017696e96e844770756eda22192b4552&language=en-US"
     data = requests.get(url).json()
-    poster_path = data['poster_path']
-    full_path = "https://image.tmdb.org/t/p/w500/" + poster_path
-    return full_path
+    poster_path = data.get('poster_path')  # Use .get() to avoid KeyError
+    if poster_path:
+        full_path = "https://image.tmdb.org/t/p/w500/" + poster_path
+        return full_path
+    return None  # Return None if no poster path found
 
-# Download function with improvements
+# Download function to retrieve files from Google Drive
 def download_file_from_google_drive(file_id, destination_path):
     url = f"https://drive.google.com/uc?id={file_id}&export=download"
     session = requests.Session()  # Create a session to handle redirection
@@ -53,13 +55,14 @@ if download_file_from_google_drive(movies_file_id, 'movies_list.pkl'):
 else:
     movies = None  # If download fails, set to None
 
+# Check if movies data is loaded
 if movies is not None:
     movies_list = movies['title'].values
 
     # Streamlit header
     st.header("Movie Recommender System")
 
-    # Correct path for the frontend component directory
+    # Define the image carousel component
     imageCarouselComponent = components.declare_component("image-carousel-component", path="frontend/public")
 
     # Pre-fetch some posters
@@ -87,11 +90,16 @@ if movies is not None:
 
     # Function to recommend movies
     def recommend(movie):
+        # Ensure similarity is defined before using it
+        if 'similarity' not in globals():
+            st.error("Similarity data is not loaded. Recommendations cannot be generated.")
+            return [], []
+        
         index = movies[movies['title'] == movie].index[0]
         distance = sorted(list(enumerate(similarity[index])), reverse=True, key=lambda vector: vector[1])
         recommend_movie = []
         recommend_poster = []
-        for i in distance[1:6]:
+        for i in distance[1:6]:  # Recommend top 5 movies
             movie_id = movies.iloc[i[0]].id
             recommend_movie.append(movies.iloc[i[0]].title)
             recommend_poster.append(fetch_poster(movie_id))
@@ -102,19 +110,25 @@ if movies is not None:
         movie_name, movie_poster = recommend(selectvalue)
         col1, col2, col3, col4, col5 = st.columns(5)
         with col1:
-            st.text(movie_name[0])
-            st.image(movie_poster[0])
+            if movie_name:
+                st.text(movie_name[0])
+                st.image(movie_poster[0])
         with col2:
-            st.text(movie_name[1])
-            st.image(movie_poster[1])
+            if movie_name:
+                st.text(movie_name[1])
+                st.image(movie_poster[1])
         with col3:
-            st.text(movie_name[2])
-            st.image(movie_poster[2])
+            if movie_name:
+                st.text(movie_name[2])
+                st.image(movie_poster[2])
         with col4:
-            st.text(movie_name[3])
-            st.image(movie_poster[3])
+            if movie_name:
+                st.text(movie_name[3])
+                st.image(movie_poster[3])
         with col5:
-            st.text(movie_name[4])
-            st.image(movie_poster[4])
+            if movie_name:
+                st.text(movie_name[4])
+                st.image(movie_poster[4])
 else:
     st.error("Movie data not loaded. Cannot proceed with the recommendations.")
+
