@@ -4,7 +4,6 @@ Created on Tue Jul  2 01:21:56 2024
 
 @author: CHAHATI DAYAL
 """
-
 import streamlit as st
 import pickle
 import requests
@@ -32,15 +31,13 @@ def download_file_from_google_drive(file_id, destination_path):
 
 # Google Drive file IDs
 movies_file_id = '1I50mx1aLgcXn91t5bEAVtnf5t9bhsqzL'  # movies_list.pkl file ID
-similarity_file_id = '1abcdEFGhijkLmnoPQ'  # similarity.pkl file ID (replace with actual)
 
-# Download the pickled data
+# Download the movies_list.pkl file
 download_file_from_google_drive(movies_file_id, 'movies_list.pkl')
-download_file_from_google_drive(similarity_file_id, 'similarity.pkl')
 
 # Load the pickled data
 movies = pickle.load(open('movies_list.pkl', 'rb'))
-similarity = pickle.load(open('similarity.pkl', 'rb'))
+similarity = pickle.load(open('similarity.pkl', 'rb'))  # Load local similarity.pkl
 movies_list = movies['title'].values
 
 # Streamlit header
