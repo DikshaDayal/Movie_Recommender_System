@@ -27,8 +27,21 @@ def fetch_poster(movie_id):
     return full_path
 
 # Function to download files from Google Drive
-def download_file_from_google_drive(file_id, destination_path):
-    gdown.download(f'https://drive.google.com/uc?id={file_id}&export=download', destination_path, quiet=False)
+import requests
+
+def download_file_from_google_drive_alternate(file_id, destination_path):
+    url = f"https://drive.google.com/uc?export=download&id={file_id}"
+    response = requests.get(url)
+    if response.status_code == 200:
+        with open(destination_path, 'wb') as f:
+            f.write(response.content)
+        st.write(f"Downloaded {destination_path} successfully!")
+    else:
+        st.error("Failed to download the file. Please check the file ID and permissions.")
+
+# Example usage
+download_file_from_google_drive_alternate('1I50mx1aLgcXn91t5bEAVtnf5t9bhsqzL', 'similarity.pkl')
+
 
 # Google Drive file IDs
 movies_file_id = '1abcdEFGhijkLmnoPQ'  # Replace with your actual movies_list.pkl ID
