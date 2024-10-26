@@ -13,7 +13,9 @@ import streamlit.components.v1 as components
 def fetch_poster(movie_id):
     url = f"https://api.themoviedb.org/3/movie/{movie_id}?api_key=017696e96e844770756eda22192b4552&language=en-US"
     data = requests.get(url).json()
-    poster_path = data['poster_path']
+    poster_path = data.get('poster_path')
+    if poster_path is None:
+        return None
     full_path = "https://image.tmdb.org/t/p/w500/" + poster_path
     return full_path
 
@@ -39,14 +41,15 @@ download_file_from_google_drive(movies_file_id, 'movies_list.pkl')
 try:
     with open('movies_list.pkl', 'rb') as f:
         movies = pickle.load(f)
-        st.write("Loaded movies_list.pkl successfully!")  # Change this to Streamlit write to show in the app
+        st.write("Loaded movies_list.pkl successfully!")
 except Exception as e:
     st.error(f"Error loading movies_list.pkl: {e}")
     movies = None  # Set movies to None if loading fails
 
 # Load the similarity.pkl file (assuming it's stored locally)
 try:
-    similarity = pickle.load(open('similarity.pkl', 'rb'))
+    with open('similarity.pkl', 'rb') as f:
+        similarity = pickle.load(f)
 except FileNotFoundError:
     st.error("similarity.pkl file not found. Please ensure it is present in the directory.")
     similarity = None  # Set similarity to None if loading fails
