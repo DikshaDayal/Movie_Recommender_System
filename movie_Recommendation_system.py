@@ -118,4 +118,3 @@ if movies is not None:
             st.image(movie_poster[4])
 else:
     st.error("Movie data not loaded. Cannot proceed with the recommendations.")
-
